@@ -35,6 +35,7 @@ using System.Linq;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Numerics;
+using UnityEngine.Networking;
 #if UNITY_WEBGL
 using Moralis.WebGL.Platform.Objects;
 using Moralis.WebGL.Web3Api.Models;
@@ -59,6 +60,11 @@ public class AwardableController : MonoBehaviour
 
     private bool isInitialized = false;
     private bool canBeClaimed = false;
+
+    public class Response
+    {
+        public string image;
+    }
 
     // Start is called before the first frame update
     async void Awake()
@@ -95,6 +101,35 @@ public class AwardableController : MonoBehaviour
                 IEnumerable<NftOwner> ownership = from n in noc.Result
                                                   where n.TokenId.Equals(NftTokenId.ToString())
                                                   select n;
+
+                Nft tokenIdMetadata = await MoralisInterface.GetClient().Web3Api.Token.GetTokenIdMetadata("0x7de3085b3190b3a787822ee16f23be010f5f8686", "1", ChainList.eth);
+                print(tokenIdMetadata.ToJson());
+
+                //fetch uri from chain
+                string uri = tokenIdMetadata.TokenUri;
+                if (uri.StartsWith("ipfs://"))
+                {
+                    uri = uri.Replace("ipfs://", "https://ipfs.io/ipfs/");
+                }
+                print("URI: " + uri);
+
+                // fetch json from uri
+                UnityWebRequest webRequest = UnityWebRequest.Get(uri);
+                await webRequest.SendWebRequest();
+                Response data = JsonUtility.FromJson<Response>(System.Text.Encoding.UTF8.GetString(webRequest.downloadHandler.data));
+
+                // parse json to get image uri
+                string imageUri = data.image;
+                if (imageUri.StartsWith("ipfs://"))
+                {
+                    imageUri = imageUri.Replace("ipfs://", "https://ipfs.io/ipfs/");
+                }
+                print("imageUri: " + imageUri);
+
+                // fetch image and display in game
+                UnityWebRequest textureRequest = UnityWebRequestTexture.GetTexture(imageUri);
+                await textureRequest.SendWebRequest();
+                this.gameObject.GetComponent<Renderer>().material.mainTexture = ((DownloadHandlerTexture)textureRequest.downloadHandler).texture;
 
                 if (ownership != null && ownership.Count() > 0)
                 {
