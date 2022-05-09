@@ -109,7 +109,7 @@ public class AwardableController : MonoBehaviour
                 string uri = tokenIdMetadata.TokenUri;
                 if (uri.StartsWith("ipfs://"))
                 {
-                    uri = uri.Replace("ipfs://", "https://ipfs.io/ipfs/");
+                    uri = uri.Replace("ipfs://", "https://gateway.moralisipfs.com/ipfs/");
                 }
                 print("URI: " + uri);
 
@@ -122,7 +122,7 @@ public class AwardableController : MonoBehaviour
                 string imageUri = data.image;
                 if (imageUri.StartsWith("ipfs://"))
                 {
-                    imageUri = imageUri.Replace("ipfs://", "https://ipfs.io/ipfs/");
+                    imageUri = imageUri.Replace("ipfs://", "https://gateway.moralisipfs.com/ipfs/");
                 }
                 print("imageUri: " + imageUri);
 
